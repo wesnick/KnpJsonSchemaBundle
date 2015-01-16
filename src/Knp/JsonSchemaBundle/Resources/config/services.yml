@@ -15,6 +15,9 @@ services:
             - @json_schema.registry
             - @json_schema.factory.schema
             - @json_schema.factory.property
+            - @jms_serializer.metadata_factory
+            - @jms_serializer.naming_strategy
+            - %json_schema_source%
 
     json_schema.registry:
         public: false
@@ -68,6 +71,15 @@ services:
         arguments:
             - @form.chain.guesser
             - @json_schema.registry
+        tags:
+            - { name: json_schema.property.handler, priority: 10 }
+
+    json_schema.property.handler.serializer:
+        public: false
+        class: Knp\JsonSchemaBundle\Property\SerializerHandler
+        arguments:
+            - @jms_serializer.metadata_factory
+            - @jms_serializer.naming_strategy
         tags:
             - { name: json_schema.property.handler, priority: 10 }
 

@@ -8,6 +8,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
      protected $supportedDbDrivers = array('orm', 'mongodb');
+    protected $supportedSources = array('reflection', 'serializer');
 
     /**
      * {@inheritDoc}
@@ -27,6 +28,17 @@ class Configuration implements ConfigurationInterface
                     ->validate()
                         ->ifNotInArray($this->supportedDbDrivers)
                         ->thenInvalid('The db driver %s is not supported. Please choose one of ' . implode(', ', $this->supportedDbDrivers))
+                    ->end()
+                ->end()
+                ->scalarNode('source')
+                    ->defaultValue('reflection')
+                    ->beforeNormalization()
+                        ->ifString()
+                        ->then(function ($v) { return strtolower($v); })
+                    ->end()
+                    ->validate()
+                        ->ifNotInArray($this->supportedSources)
+                        ->thenInvalid('The source %s of information is not supported. Please choose one of ' . implode(', ', $this->supportedSources))
                     ->end()
                 ->end()
             ->end()
