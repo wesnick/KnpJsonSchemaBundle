@@ -14,11 +14,13 @@ class SerializerHandler implements PropertyHandlerInterface
 {
     protected $factory;
     protected $namingStrategy;
+    protected $groups = array();
 
-    public function __construct(MetadataFactoryInterface $factory, PropertyNamingStrategyInterface $namingStrategy)
+    public function __construct(MetadataFactoryInterface $factory, PropertyNamingStrategyInterface $namingStrategy, $groups = array())
     {
         $this->factory        = $factory;
         $this->namingStrategy = $namingStrategy;
+        $this->groups         = $groups;
 
     }
 
@@ -26,7 +28,20 @@ class SerializerHandler implements PropertyHandlerInterface
     {
         $meta = $this->factory->getMetadataForClass($className);
 
+        $exclusionStrategies = array();
+        if ($this->groups) {
+            $exclusionStrategies[] = new GroupsExclusionStrategy($this->groups);
+        }
+
         foreach ($meta->propertyMetadata as $item) {
+
+            // apply exclusion strategies
+            foreach ($exclusionStrategies as $strategy) {
+                if (true === $strategy->shouldSkipProperty($item, SerializationContext::create())) {
+                    continue 2;
+                }
+            }
+
             if (!(is_null($item->type))) {
                 if ($item->name === $property->getName()) {
                     $property->addType($this->getPropertyType($item->type));
