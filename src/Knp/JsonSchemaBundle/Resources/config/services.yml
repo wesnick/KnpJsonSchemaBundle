@@ -15,9 +15,6 @@ services:
             - @json_schema.registry
             - @json_schema.factory.schema
             - @json_schema.factory.property
-            - @jms_serializer.metadata_factory
-            - @jms_serializer.naming_strategy
-            - %json_schema_source%
 
     json_schema.registry:
         public: false
@@ -37,6 +34,7 @@ services:
         arguments:
             - @json_schema.finder
             - @json_schema.filesystem
+            - @json_schema.factory.property
 
     json_schema.finder:
         public: false

@@ -3,6 +3,7 @@
 namespace Knp\JsonSchemaBundle\Property;
 
 use Doctrine\Common\Inflector\Inflector;
+use Doctrine\Common\Persistence\Mapping\MappingException;
 use Knp\JsonSchemaBundle\Model\Property;
 use Knp\JsonSchemaBundle\Schema\SchemaRegistry;
 use Symfony\Component\Form\Guess\TypeGuess;
@@ -22,7 +23,14 @@ class FormTypeGuesserHandler implements PropertyHandlerInterface
 
     public function handle($className, Property $property)
     {
-        if ($type = $this->guesser->guessType($className, $property->getName())) {
+
+        try {
+            $type = $this->guesser->guessType($className, $property->getName());
+        } catch (MappingException $e) {
+            $type = null;
+        }
+
+        if ($type) {
             $property->addType($this->getPropertyType($type));
             $property->setFormat($this->getPropertyFormat($type));
 

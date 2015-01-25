@@ -69,7 +69,7 @@ class JsonSchemaAnnotationHandler implements PropertyHandlerInterface
 
     private function getJsonSchemaConstraintsForProperty($className, Property $property)
     {
-        $refClass = $this->reflectionFactory->create($className);
+        $refClass = new \ReflectionClass($className);
         try {
             return $this->reader->getPropertyAnnotations($refClass->getProperty($property->getName()));
         } catch (\Exception $e) {

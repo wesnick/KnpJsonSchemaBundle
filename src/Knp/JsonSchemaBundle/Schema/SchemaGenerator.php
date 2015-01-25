@@ -2,7 +2,6 @@
 
 namespace Knp\JsonSchemaBundle\Schema;
 
-use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use Knp\JsonSchemaBundle\Reflection\ReflectionFactory;
 use Knp\JsonSchemaBundle\Schema\SchemaRegistry;
 use Knp\JsonSchemaBundle\Model\SchemaFactory;
@@ -10,7 +9,6 @@ use Knp\JsonSchemaBundle\Model\Schema;
 use Knp\JsonSchemaBundle\Model\PropertyFactory;
 use Knp\JsonSchemaBundle\Model\Property;
 use Knp\JsonSchemaBundle\Property\PropertyHandlerInterface;
-use Metadata\MetadataFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class SchemaGenerator
@@ -21,9 +19,6 @@ class SchemaGenerator
     protected $schemaFactory;
     protected $propertyFactory;
     protected $propertyHandlers;
-    protected $factory;
-    protected $namingStrategy;
-    protected $source;
     protected $aliases = array();
 
     public function __construct(
@@ -32,10 +27,7 @@ class SchemaGenerator
         ReflectionFactory $reflectionFactory,
         SchemaRegistry $schemaRegistry,
         SchemaFactory $schemaFactory,
-        PropertyFactory $propertyFactory,
-        MetadataFactoryInterface $factory,
-        PropertyNamingStrategyInterface $namingStrategy,
-        $source
+        PropertyFactory $propertyFactory
     ) {
         $this->jsonValidator     = $jsonValidator;
         $this->urlGenerator      = $urlGenerator;
@@ -44,9 +36,6 @@ class SchemaGenerator
         $this->schemaFactory     = $schemaFactory;
         $this->propertyFactory   = $propertyFactory;
         $this->propertyHandlers  = new \SplPriorityQueue;
-        $this->factory           = $factory;
-        $this->namingStrategy    = $namingStrategy;
-        $this->source            = $source;
     }
 
     public function generate($alias)
@@ -54,30 +43,28 @@ class SchemaGenerator
         $this->aliases[] = $alias;
 
         $className = $this->schemaRegistry->getNamespace($alias);
-        $refl      = $this->reflectionFactory->create($className);
-        $meta      = $this->factory->getMetadataForClass($className);
         $schema    = $this->schemaFactory->createSchema(ucfirst($alias));
 
         $schema->setId($this->urlGenerator->generate('show_json_schema', array('alias' => $alias), true) . '#');
         $schema->setSchema(Schema::SCHEMA_V3);
         $schema->setType(Schema::TYPE_OBJECT);
 
-        if ('reflection' === $this->source) {
-            foreach ($refl->getProperties() as $property) {
-                $property = $this->propertyFactory->createProperty($property->name);
-                $this->applyPropertyHandlers($className, $property);
+        foreach ($this->reflectionFactory->getPropertiesForClass($className) as $property) {
+            $this->applyPropertyHandlers($className, $property);
 
-                $this->addProperty($schema, $property);
-            }
-        } elseif ('serializer' === $this->source) {
-            foreach ($meta->propertyMetadata as $item) {
-                if (!is_null($item->type)) {
-                    $name = $this->namingStrategy->translateName($item);
-                    $property = $this->propertyFactory->createProperty($name);
-                    $this->applyPropertyHandlers($className, $property);
-
-                    $this->addProperty($schema, $property);
+            if (!$property->isIgnored() && $property->hasType(Property::TYPE_OBJECT) && $property->getObject()) {
+                // Make sure that we're not creating a reference to the parent schema of the property
+                if (!in_array($property->getObject(), $this->aliases)) {
+                    $property->setSchema(
+                        $this->generate($property->getObject())
+                    );
+                } else {
+                    $property->setIgnored(true);
                 }
+            }
+
+            if (!$property->isIgnored()) {
+                $schema->addProperty($property);
             }
         }
 
@@ -93,24 +80,6 @@ class SchemaGenerator
         }
 
         return $schema;
-    }
-
-    public function addProperty($schema, $property)
-    {
-        if (!$property->isIgnored() && $property->hasType(Property::TYPE_OBJECT) && $property->getObject()) {
-            // Make sure that we're not creating a reference to the parent schema of the property
-            if (!in_array($property->getObject(), $this->aliases)) {
-                $property->setSchema(
-                    $this->generate($property->getObject())
-                );
-            } else {
-                $property->setIgnored(true);
-            }
-        }
-
-        if (!$property->isIgnored()) {
-            $schema->addProperty($property);
-        }
     }
 
     public function registerPropertyHandler(PropertyHandlerInterface $handler, $priority)

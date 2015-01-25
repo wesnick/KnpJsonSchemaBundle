@@ -4,18 +4,29 @@ namespace Knp\JsonSchemaBundle\Reflection;
 
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Filesystem\Filesystem;
+use Knp\JsonSchemaBundle\Model\PropertyFactory;
 
 class ReflectionFactory
 {
-    public function __construct(Finder $finder, Filesystem $filesystem)
+    public function __construct(Finder $finder, Filesystem $filesystem, PropertyFactory $propertyFactory)
     {
         $this->finder     = $finder;
         $this->filesystem = $filesystem;
+        $this->propertyFactory = $propertyFactory;
     }
 
-    public function create($className)
+
+    public function getPropertiesForClass($className)
     {
-        return new \ReflectionClass($className);
+        $refl = new \ReflectionClass($className);
+
+        $properties = [];
+
+        foreach ($refl->getProperties() as $prop) {
+            $properties[$prop->name] = $this->propertyFactory->createProperty($prop->name);
+        }
+
+        return $properties;
     }
 
     public function createFromDirectory($directory, $namespace)

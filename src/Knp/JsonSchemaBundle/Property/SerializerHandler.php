@@ -108,4 +108,40 @@ class SerializerHandler implements PropertyHandlerInterface
                 return Property::TYPE_STRING;
         }
     }
+
+
+    /**
+     * Check the various ways JMS describes values in arrays, and
+     * get the value type in the array
+     *
+     * @param  PropertyMetadata $item
+     * @return string|null
+     */
+    protected function getNestedTypeInArray(PropertyMetadata $item)
+    {
+        if (isset($item->type['name']) && in_array($item->type['name'], array('array', 'ArrayCollection'))) {
+            if (isset($item->type['params'][1]['name'])) {
+                // E.g. array<string, MyNamespaceMyObject>
+                return $item->type['params'][1]['name'];
+            }
+            if (isset($item->type['params'][0]['name'])) {
+                // E.g. array<MyNamespaceMyObject>
+                return $item->type['params'][0]['name'];
+            }
+        }
+
+        return null;
+    }
+
+    protected function getDescription(PropertyMetadata $item)
+    {
+        $ref = new \ReflectionClass($item->class);
+        if ($item instanceof VirtualPropertyMetadata) {
+            $extracted = $this->commentExtractor->getDocCommentText($ref->getMethod($item->getter));
+        } else {
+            $extracted = $this->commentExtractor->getDocCommentText($ref->getProperty($item->name));
+        }
+
+        return $extracted;
+    }
 }
