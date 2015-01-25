@@ -74,7 +74,7 @@ services:
 
     json_schema.property.handler.serializer:
         public: false
-        class: Knp\JsonSchemaBundle\Property\SerializerHandler
+        class: Knp\JsonSchemaBundle\Property\JmsSerializerHandler
         arguments:
             - @jms_serializer.metadata_factory
             - @jms_serializer.naming_strategy

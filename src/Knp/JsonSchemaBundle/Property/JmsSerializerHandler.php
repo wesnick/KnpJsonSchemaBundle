@@ -3,6 +3,8 @@
 namespace Knp\JsonSchemaBundle\Property;
 
 use Doctrine\Common\Inflector\Inflector;
+use JMS\Serializer\Exclusion\ExclusionStrategyInterface;
+use JMS\Serializer\Metadata\PropertyMetadata;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use Knp\JsonSchemaBundle\Model\Property;
 use Knp\JsonSchemaBundle\Schema\SchemaRegistry;
@@ -12,8 +14,11 @@ use Symfony\Component\Form\FormTypeGuesserInterface;
 use JMS\Serializer\Exclusion\GroupsExclusionStrategy;
 use JMS\Serializer\SerializationContext;
 
-class SerializerHandler implements PropertyHandlerInterface
+class JmsSerializerHandler implements PropertyHandlerInterface
 {
+    /**
+     * @var MetadataFactoryInterface
+     */
     protected $factory;
     protected $namingStrategy;
     protected $groups = array();
@@ -30,27 +35,13 @@ class SerializerHandler implements PropertyHandlerInterface
     {
         $meta = $this->factory->getMetadataForClass($className);
 
-        $exclusionStrategies = array();
-        if ($this->groups) {
-            $exclusionStrategies[] = new GroupsExclusionStrategy($this->groups);
-        }
+        $propertyMeta = array_reduce($meta->propertyMetadata, function (PropertyMetadata $p) use ($property) {
+            return $property->getName() === $p->name;
+        });
 
-        foreach ($meta->propertyMetadata as $item) {
-
-            // apply exclusion strategies
-            foreach ($exclusionStrategies as $strategy) {
-                if (true === $strategy->shouldSkipProperty($item, SerializationContext::create())) {
-                    $property->setIgnored(true);
-                    continue 2;
-                }
-            }
-
-            if (!(is_null($item->type))) {
-                if ($item->name === $property->getName()) {
-                    $property->addType($this->getPropertyType($item->type));
-                    $property->setFormat($this->getPropertyFormat($item->type));
-                }
-            }
+        if ($propertyMeta) {
+            $property->addType($this->getPropertyType($propertyMeta->type));
+            $property->setFormat($this->getPropertyFormat($propertyMeta->type));
         }
     }
 

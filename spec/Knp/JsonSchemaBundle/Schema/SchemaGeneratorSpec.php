@@ -9,7 +9,7 @@ class SchemaGeneratorSpec extends ObjectBehavior
     /**
      * @param JsonSchema\Validator                                      $jsonValidator
      * @param Symfony\Component\Routing\Generator\UrlGeneratorInterface $urlGenerator
-     * @param Knp\JsonSchemaBundle\Reflection\ReflectionFactory         $reflectionFactory
+     * @param Knp\JsonSchemaBundle\Collector\PropertyCollectorInterface $collector
      * @param Knp\JsonSchemaBundle\Schema\SchemaRegistry                $schemaRegistry
      * @param Knp\JsonSchemaBundle\Model\SchemaFactory                  $schemaFactory
      * @param Knp\JsonSchemaBundle\Model\PropertyFactory                $propertyFactory
@@ -18,11 +18,11 @@ class SchemaGeneratorSpec extends ObjectBehavior
      * @param Knp\JsonSchemaBundle\Property\PropertyHandlerInterface    $handler3
      */
     function let(
-        $jsonValidator, $urlGenerator, $reflectionFactory, $schemaRegistry,
+        $jsonValidator, $urlGenerator, $collector, $schemaRegistry,
         $schemaFactory, $propertyFactory, $handler1, $handler2, $handler3
     )
     {
-        $this->beConstructedWith($jsonValidator, $urlGenerator, $reflectionFactory, $schemaRegistry, $schemaFactory, $propertyFactory);
+        $this->beConstructedWith($jsonValidator, $urlGenerator, $collector, $schemaRegistry, $schemaFactory, $propertyFactory);
 
         $this->registerPropertyHandler($handler1, 3);
         $this->registerPropertyHandler($handler2, 1);
@@ -36,18 +36,17 @@ class SchemaGeneratorSpec extends ObjectBehavior
      * @param \StdClass                           $refProperty
      */
     function it_should_generate_a_valid_json_schema_with_required_properties(
-        $jsonValidator, $urlGenerator, $reflectionFactory, $schemaRegistry, $schemaFactory, $propertyFactory,
+        $jsonValidator, $urlGenerator, $collector, $schemaRegistry, $schemaFactory, $propertyFactory,
         $handler1, $handler2, $handler3, $refClass, $refProperty, $schema, $property
     )
     {
         $jsonValidator->check(Argument::any(), Argument::any())->shouldBeCalled();
         $jsonValidator->isValid()->willReturn(true);
         $schemaRegistry->getNamespace('bar')->willReturn('App\\Foo\\Bar');
-        $reflectionFactory->create('App\\Foo\\Bar')->willReturn($refClass);
         $schemaFactory->createSchema('Bar')->willReturn($schema);
-        $refProperty->name = 'name';
-        $refClass->getProperties()->willReturn(array($refProperty));
-        $propertyFactory->createProperty('name')->willReturn($property);
+        $schema->getProperties()->willReturn([$property]);
+
+        $collector->getPropertiesForClass('App\\Foo\\Bar')->willReturn([$property]);
         $urlGenerator->generate('show_json_schema', array('alias' => 'bar'), true)->willReturn('some url');
         $schema->getSchema()->willReturn(\Knp\JsonSchemaBundle\Model\Schema::SCHEMA_V3);
         $schema->jsonSerialize()->shouldBeCalled();

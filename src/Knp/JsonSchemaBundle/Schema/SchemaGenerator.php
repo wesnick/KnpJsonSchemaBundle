@@ -2,6 +2,7 @@
 
 namespace Knp\JsonSchemaBundle\Schema;
 
+use Knp\JsonSchemaBundle\Collector\PropertyCollectorInterface;
 use Knp\JsonSchemaBundle\Reflection\ReflectionFactory;
 use Knp\JsonSchemaBundle\Schema\SchemaRegistry;
 use Knp\JsonSchemaBundle\Model\SchemaFactory;
@@ -14,7 +15,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class SchemaGenerator
 {
     protected $jsonValidator;
-    protected $reflectionFactory;
+    protected $propertyCollector;
     protected $schemaRegistry;
     protected $schemaFactory;
     protected $propertyFactory;
@@ -24,14 +25,14 @@ class SchemaGenerator
     public function __construct(
         \JsonSchema\Validator $jsonValidator,
         UrlGeneratorInterface $urlGenerator,
-        ReflectionFactory $reflectionFactory,
+        PropertyCollectorInterface $propertyCollector,
         SchemaRegistry $schemaRegistry,
         SchemaFactory $schemaFactory,
         PropertyFactory $propertyFactory
     ) {
         $this->jsonValidator     = $jsonValidator;
         $this->urlGenerator      = $urlGenerator;
-        $this->reflectionFactory = $reflectionFactory;
+        $this->propertyCollector = $propertyCollector;
         $this->schemaRegistry    = $schemaRegistry;
         $this->schemaFactory     = $schemaFactory;
         $this->propertyFactory   = $propertyFactory;
@@ -49,7 +50,7 @@ class SchemaGenerator
         $schema->setSchema(Schema::SCHEMA_V3);
         $schema->setType(Schema::TYPE_OBJECT);
 
-        foreach ($this->reflectionFactory->getPropertiesForClass($className) as $property) {
+        foreach ($this->propertyCollector->getPropertiesForClass($className) as $property) {
             $this->applyPropertyHandlers($className, $property);
 
             if (!$property->isIgnored() && $property->hasType(Property::TYPE_OBJECT) && $property->getObject()) {
