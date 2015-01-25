@@ -35,14 +35,23 @@ class JmsSerializerHandler implements PropertyHandlerInterface
     {
         $meta = $this->factory->getMetadataForClass($className);
 
-        $propertyMeta = array_reduce($meta->propertyMetadata, function (PropertyMetadata $p) use ($property) {
-            return $property->getName() === $p->name;
-        });
-
-        if ($propertyMeta) {
-            $property->addType($this->getPropertyType($propertyMeta->type));
-            $property->setFormat($this->getPropertyFormat($propertyMeta->type));
+        if (!isset($meta->propertyMetadata[$property->getName()]) || !isset($meta->propertyMetadata[$property->getName()]->type)) {
+            return;
         }
+
+        $propertyMeta = $meta->propertyMetadata[$property->getName()];
+        $type = $this->getPropertyType($propertyMeta->type);
+
+        if (Property::TYPE_ARRAY === $type) {
+            $property->setMultiple(true);
+
+        }
+
+        $property->addType($type);
+
+//        $format = $propertyMeta->type;
+//        $property->setFormat($format);
+
     }
 
     private function getPropertyType(array $type)

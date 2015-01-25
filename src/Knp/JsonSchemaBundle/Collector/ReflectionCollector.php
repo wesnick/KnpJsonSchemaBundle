@@ -7,11 +7,11 @@ use Knp\JsonSchemaBundle\Model\PropertyFactory;
 
 
 /**
- * Class ReflectionCollectorInterface
+ * Class ReflectionCollector
  * 
  * @author Wesley O. Nichols <wesley.o.nichols@gmail.com>
  */
-class ReflectionCollectorInterface implements PropertyCollectorInterface
+class ReflectionCollector implements PropertyCollectorInterface
 {
     /**
      * @var ReflectionFactory

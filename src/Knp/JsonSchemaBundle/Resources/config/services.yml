@@ -11,7 +11,7 @@ services:
         arguments:
             - @json_schema.validator
             - @router
-            - @json_schema.reflection_factory
+            - @json_schema.property_collector.jms_serializer
             - @json_schema.registry
             - @json_schema.factory.schema
             - @json_schema.factory.property
@@ -19,6 +19,20 @@ services:
     json_schema.registry:
         public: false
         class: Knp\JsonSchemaBundle\Schema\SchemaRegistry
+
+    json_schema.property_collector.reflection:
+        public: false
+        class: Knp\JsonSchemaBundle\Collector\ReflectionCollector
+        arguments:
+            - @json_schema.reflection_factory
+            - @json_schema.factory.property
+
+    json_schema.property_collector.jms_serializer:
+        public: false
+        class: Knp\JsonSchemaBundle\Collector\JmsSerializerPropertyCollector
+        arguments:
+            - @jms_serializer.metadata_factory
+            - @json_schema.factory.property
 
     json_schema.factory.schema:
         public: false
