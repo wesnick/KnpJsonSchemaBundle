@@ -9,6 +9,8 @@ use Knp\JsonSchemaBundle\Schema\SchemaRegistry;
 use Metadata\MetadataFactoryInterface;
 use Symfony\Component\Form\Guess\TypeGuess;
 use Symfony\Component\Form\FormTypeGuesserInterface;
+use JMS\Serializer\Exclusion\GroupsExclusionStrategy;
+use JMS\Serializer\SerializationContext;
 
 class SerializerHandler implements PropertyHandlerInterface
 {
@@ -38,6 +40,7 @@ class SerializerHandler implements PropertyHandlerInterface
             // apply exclusion strategies
             foreach ($exclusionStrategies as $strategy) {
                 if (true === $strategy->shouldSkipProperty($item, SerializationContext::create())) {
+                    $property->setIgnored(true);
                     continue 2;
                 }
             }

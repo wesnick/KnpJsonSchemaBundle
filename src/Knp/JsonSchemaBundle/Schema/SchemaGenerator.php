@@ -68,6 +68,10 @@ class SchemaGenerator
             }
         }
 
+        if (null === $schema->getProperties()) {
+            throw new \Exception("This resource has no visible properties for this serialization group.");
+        }
+
         if (false === $this->validateSchema($schema)) {
             $message = "Generated schema is invalid. Please report on" .
                 "https://github.com/KnpLabs/KnpJsonSchemaBundle/issues/new.\n" .
