@@ -47,7 +47,7 @@ class SchemaGenerator
         $schema    = $this->schemaFactory->createSchema(ucfirst($alias));
 
         $schema->setId($this->urlGenerator->generate('show_json_schema', array('alias' => $alias), true) . '#');
-        $schema->setSchema(Schema::SCHEMA_V3);
+        $schema->setSchema(Schema::SCHEMA_V4);
         $schema->setType(Schema::TYPE_OBJECT);
 
         foreach ($this->propertyCollector->getPropertiesForClass($className) as $property) {

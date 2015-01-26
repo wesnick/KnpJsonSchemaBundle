@@ -5,7 +5,7 @@ namespace Knp\JsonSchemaBundle\Model;
 class Schema implements \JsonSerializable
 {
     const TYPE_OBJECT = 'object';
-    const SCHEMA_V3 = 'http://json-schema.org/draft-04/schema#';
+    const SCHEMA_V4 = 'http://json-schema.org/draft-04/schema#';
 
     private $title;
     private $id;

@@ -48,7 +48,7 @@ class SchemaGeneratorSpec extends ObjectBehavior
 
         $collector->getPropertiesForClass('App\\Foo\\Bar')->willReturn([$property]);
         $urlGenerator->generate('show_json_schema', array('alias' => 'bar'), true)->willReturn('some url');
-        $schema->getSchema()->willReturn(\Knp\JsonSchemaBundle\Model\Schema::SCHEMA_V3);
+        $schema->getSchema()->willReturn(\Knp\JsonSchemaBundle\Model\Schema::SCHEMA_V4);
         $schema->jsonSerialize()->shouldBeCalled();
 
         $handler1->handle('App\\Foo\\Bar', $property)->shouldBeCalled();
@@ -57,7 +57,7 @@ class SchemaGeneratorSpec extends ObjectBehavior
 
         $schema->addProperty($property)->shouldBeCalled();
         $schema->setId('some url#')->shouldBeCalled();
-        $schema->setSchema(\Knp\JsonSchemaBundle\Model\Schema::SCHEMA_V3)->shouldBeCalled();
+        $schema->setSchema(\Knp\JsonSchemaBundle\Model\Schema::SCHEMA_V4)->shouldBeCalled();
         $schema->setType(\Knp\JsonSchemaBundle\Model\Schema::TYPE_OBJECT)->shouldBeCalled();
 
         $this->generate('bar');
