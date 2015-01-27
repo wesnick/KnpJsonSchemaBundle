@@ -90,6 +90,7 @@ services:
         public: false
         class: Knp\JsonSchemaBundle\Property\JmsSerializerHandler
         arguments:
+            - @json_schema.registry
             - @jms_serializer.metadata_factory
             - @jms_serializer.naming_strategy
         tags:

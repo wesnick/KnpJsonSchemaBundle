@@ -7,11 +7,41 @@ class Schema implements \JsonSerializable
     const TYPE_OBJECT = 'object';
     const SCHEMA_V4 = 'http://json-schema.org/draft-04/schema#';
 
+    /**
+     * @var string
+     */
     private $title;
+
+    /**
+     * @var string
+     */
+    private $description;
+
+    /**
+     * The "id" keyword is used to alter the resolution scope.  When an id is encountered, the implementation
+     * must resolve against the most immediate parent scope.
+     *
+     * @var string
+     */
     private $id;
+
+    /**
+     * @var
+     */
     private $type;
+
+    /**
+     * This keyword MUST be a URL and a valid JSON reference.  Use a default or link to a customized schema.
+     *
+     * @var string
+     */
     private $schema;
+
+    /**
+     * @var Property[]
+     */
     private $properties;
+
 
     public function getTitle()
     {
@@ -21,6 +51,24 @@ class Schema implements \JsonSerializable
     public function setTitle($title)
     {
         $this->title = $title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string $description
+     *
+     * @return Schema
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
     }
 
     public function getProperties()

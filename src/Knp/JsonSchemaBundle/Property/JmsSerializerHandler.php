@@ -20,11 +20,26 @@ class JmsSerializerHandler implements PropertyHandlerInterface
      * @var MetadataFactoryInterface
      */
     protected $factory;
+
+    /**
+     * @var PropertyNamingStrategyInterface
+     */
     protected $namingStrategy;
+
+    /**
+     * @var SchemaRegistry
+     */
+    protected $registry;
+
     protected $groups = array();
 
-    public function __construct(MetadataFactoryInterface $factory, PropertyNamingStrategyInterface $namingStrategy, $groups = array())
-    {
+    public function __construct(
+        SchemaRegistry $registry,
+        MetadataFactoryInterface $factory,
+        PropertyNamingStrategyInterface $namingStrategy,
+        $groups = array()
+    ) {
+        $this->registry       = $registry;
         $this->factory        = $factory;
         $this->namingStrategy = $namingStrategy;
         $this->groups         = $groups;
@@ -42,9 +57,21 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         $propertyMeta = $meta->propertyMetadata[$property->getName()];
         $type = $this->getPropertyType($propertyMeta->type);
 
+        if (Property::TYPE_OBJECT === $type) {
+            $alias = $this->registry->getAlias($type);
+
+            if ($alias) {
+                $property->setObject($alias);
+
+                if (isset($options['multiple']) && $options['multiple'] == true) {
+                    $property->setMultiple(true);
+                }
+            }
+        }
+
+
         if (Property::TYPE_ARRAY === $type) {
             $property->setMultiple(true);
-
         }
 
         $property->addType($type);
@@ -80,6 +107,8 @@ class JmsSerializerHandler implements PropertyHandlerInterface
             case 'time':
             case 'string':
                 return Property::TYPE_STRING;
+            default:
+                return Property::TYPE_OBJECT;
         }
     }
 

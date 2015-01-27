@@ -33,6 +33,7 @@ class Property implements \JsonSerializable
     protected $title;
     protected $description;
     protected $required = false;
+    protected $default;
     protected $type = array();
     protected $pattern;
     protected $enumeration = array();
@@ -72,6 +73,25 @@ class Property implements \JsonSerializable
     public function getTitle()
     {
         return $this->title;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefault()
+    {
+        return $this->default;
+    }
+
+    /**
+     * @param mixed $default
+     *
+     * @return Property
+     */
+    public function setDefault($default)
+    {
+        $this->default = $default;
+        return $this;
     }
 
     public function setDescription($description)
