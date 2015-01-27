@@ -57,15 +57,20 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         $propertyMeta = $meta->propertyMetadata[$property->getName()];
         $type = $this->getPropertyType($propertyMeta->type);
 
-        if (Property::TYPE_OBJECT === $type) {
-            $alias = $this->registry->getAlias($type);
+        if (!$dataType = $this->getNestedTypeInArray($propertyMeta)) {
+            $dataType = $propertyMeta->type['name'];
+        }
+
+        if (in_array($type, [Property::TYPE_OBJECT, Property::TYPE_ARRAY]) && $this->registry->hasNamespace($dataType)) {
+
+            if ($type === Property::TYPE_ARRAY) {
+                $property->addType(Property::TYPE_OBJECT);
+            }
+
+            $alias = $this->registry->getAlias($dataType);
 
             if ($alias) {
                 $property->setObject($alias);
-
-                if (isset($options['multiple']) && $options['multiple'] == true) {
-                    $property->setMultiple(true);
-                }
             }
         }
 
@@ -75,9 +80,6 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         }
 
         $property->addType($type);
-
-//        $format = $propertyMeta->type;
-//        $property->setFormat($format);
 
     }
 
@@ -106,6 +108,7 @@ class JmsSerializerHandler implements PropertyHandlerInterface
             case 'locale':
             case 'time':
             case 'string':
+            case 'DateTimeImmutable':
                 return Property::TYPE_STRING;
             default:
                 return Property::TYPE_OBJECT;
@@ -165,15 +168,4 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         return null;
     }
 
-    protected function getDescription(PropertyMetadata $item)
-    {
-        $ref = new \ReflectionClass($item->class);
-        if ($item instanceof VirtualPropertyMetadata) {
-            $extracted = $this->commentExtractor->getDocCommentText($ref->getMethod($item->getter));
-        } else {
-            $extracted = $this->commentExtractor->getDocCommentText($ref->getProperty($item->name));
-        }
-
-        return $extracted;
-    }
 }

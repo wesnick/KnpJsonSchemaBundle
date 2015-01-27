@@ -384,6 +384,10 @@ class Property implements \JsonSerializable
         if ($this->description) {
             $serialized['description'] = $this->description;
         }
+        if ('Heating Installations' === $this->title) {
+            $x = 'y';
+        }
+
 
         if ($this->schema && $this->hasType(self::TYPE_OBJECT)) {
             $schema = $this->schema->jsonSerialize();
