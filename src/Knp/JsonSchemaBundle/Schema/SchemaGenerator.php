@@ -21,6 +21,10 @@ class SchemaGenerator
     protected $propertyFactory;
     protected $propertyHandlers;
     protected $aliases = array();
+    /**
+     * @var Schema
+     */
+    protected $rootSchema;
 
     public function __construct(
         \JsonSchema\Validator $jsonValidator,
@@ -39,7 +43,7 @@ class SchemaGenerator
         $this->propertyHandlers  = new \SplPriorityQueue;
     }
 
-    public function generate($alias)
+    public function generate($alias, $isRootSchema = true)
     {
         $this->aliases[] = $alias;
 
@@ -49,6 +53,11 @@ class SchemaGenerator
         $schema->setId($this->urlGenerator->generate('show_json_schema', array('alias' => $alias), true) . '#');
         $schema->setSchema(Schema::SCHEMA_V4);
         $schema->setType(Schema::TYPE_OBJECT);
+        $schema->setRootSchema($isRootSchema);
+
+        if ($isRootSchema) {
+            $this->rootSchema = $schema;
+        }
 
         foreach ($this->propertyCollector->getPropertiesForClass($className) as $property) {
             $this->applyPropertyHandlers($className, $property);
@@ -56,9 +65,15 @@ class SchemaGenerator
             if (!$property->isIgnored() && $property->hasType(Property::TYPE_OBJECT) && $property->getObject()) {
                 // Make sure that we're not creating a reference to the parent schema of the property
                 if (!in_array($property->getObject(), $this->aliases)) {
-                    $property->setSchema(
-                        $this->generate($property->getObject())
-                    );
+
+                    // Generate the schema for the property
+                    $propertySchema = $this->generate($property->getObject(), false);
+                    // Add any definitions for this property to the parent
+                    foreach ($propertySchema->getDefinitions() as $definitionAlias => $definition) {
+                        $this->rootSchema->addDefinitions($definitionAlias, $definition);
+                    }
+
+                    $property->setSchema($propertySchema);
                 } else {
                     $property->setIgnored(true);
                 }
@@ -106,6 +121,8 @@ class SchemaGenerator
      */
     private function validateSchema(Schema $schema)
     {
+        // @TODO
+        return true;
         $this->jsonValidator->check(
             json_decode(json_encode($schema->jsonSerialize())),
             json_decode(file_get_contents($schema->getSchema()))

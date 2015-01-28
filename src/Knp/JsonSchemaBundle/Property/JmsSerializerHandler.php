@@ -64,7 +64,7 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         if (in_array($type, [Property::TYPE_OBJECT, Property::TYPE_ARRAY]) && $this->registry->hasNamespace($dataType)) {
 
             if ($type === Property::TYPE_ARRAY) {
-                $property->setType(Property::TYPE_OBJECT);
+                $property->addType(Property::TYPE_OBJECT);
             }
 
             $alias = $this->registry->getAlias($dataType);

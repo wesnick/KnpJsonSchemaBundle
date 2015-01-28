@@ -18,6 +18,11 @@ class Schema implements \JsonSerializable
     private $description;
 
     /**
+     * @var array
+     */
+    private $definitions = array();
+
+    /**
      * The "id" keyword is used to alter the resolution scope.  When an id is encountered, the implementation
      * must resolve against the most immediate parent scope.
      *
@@ -42,6 +47,37 @@ class Schema implements \JsonSerializable
      */
     private $properties;
 
+    /**
+     * @var bool
+     */
+    private $rootSchema = false;
+
+    /**
+     * @param boolean $rootSchema
+     */
+    public function setRootSchema($rootSchema)
+    {
+        $this->rootSchema = $rootSchema;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDefinitions()
+    {
+        return $this->definitions;
+    }
+
+    /**
+     * @param string $alias
+     * @param array $definition
+     */
+    public function addDefinitions($alias, $definition)
+    {
+        // When adding a definition, we should replace the property with a reference
+        unset($this->properties[$alias]);
+        $this->definitions[$alias] = $definition;
+    }
 
     public function getTitle()
     {
@@ -116,7 +152,17 @@ class Schema implements \JsonSerializable
         $properties = array();
 
         foreach ($this->properties as $i => $property) {
-            $properties[$i] = $property->jsonSerialize();
+            if ($property->hasType(Property::TYPE_OBJECT)) {
+
+                $type = $property->getObject();
+
+                $reference = new PropertyReference($property);
+                $this->definitions[$type] = $property;
+                $properties[$i] = $reference;
+
+            } else {
+                $properties[$i] = $property->jsonSerialize();
+            }
         }
 
         $serialized = array(
@@ -124,8 +170,13 @@ class Schema implements \JsonSerializable
             'type'       => $this->type,
             '$schema'    => $this->schema,
             'id'         => $this->id,
-            'properties' => $this->properties,
+            'properties' => $properties,
         );
+
+        // Add definitions to root schema only
+        if ($this->rootSchema) {
+            $serialized['definitions'] = $this->definitions;
+        }
 
         $requiredProperties = array_keys(array_filter($this->properties, function ($property) {
             return $property->isRequired();
