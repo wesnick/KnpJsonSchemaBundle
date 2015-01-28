@@ -159,6 +159,8 @@ class Schema implements \JsonSerializable
     public function jsonSerialize()
     {
 
+        $serialized = array();
+
         // Add schema and id root schema only
         if ($this->rootSchema) {
             $serialized['$schema'] = $this->schema;
@@ -186,14 +188,14 @@ class Schema implements \JsonSerializable
             }
         }
 
-        $serialized = array(
+        $serialized += array(
             'title'      => $this->title,
             'type'       => $this->type,
             'properties' => $properties,
         );
 
         // Add definitions to root schema only
-        if ($this->rootSchema) {
+        if ($this->rootSchema && !empty($this->definitions)) {
             $serialized['definitions'] = $this->definitions;
         }
 
