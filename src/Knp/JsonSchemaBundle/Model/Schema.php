@@ -18,7 +18,7 @@ class Schema implements \JsonSerializable
     private $description;
 
     /**
-     * @var array
+     * @var Schema[]
      */
     private $definitions = array();
 
@@ -70,12 +70,21 @@ class Schema implements \JsonSerializable
 
     /**
      * @param string $alias
-     * @param array $definition
      */
-    public function addDefinitions($alias, $definition)
+    public function hasDefinition($alias)
+    {
+        return array_key_exists($alias, $this->definitions) && null !== $this->definitions[$alias];
+    }
+
+    /**
+     * @param string $alias
+     * @param Schema $definition
+     */
+    public function addDefinition($alias, Schema $definition)
     {
         // When adding a definition, we should replace the property with a reference
         unset($this->properties[$alias]);
+
         $this->definitions[$alias] = $definition;
     }
 
@@ -149,6 +158,13 @@ class Schema implements \JsonSerializable
 
     public function jsonSerialize()
     {
+
+        // Add schema and id root schema only
+        if ($this->rootSchema) {
+            $serialized['$schema'] = $this->schema;
+            $serialized['id'] = $this->id;
+        }
+
         $properties = array();
 
         foreach ($this->properties as $i => $property) {
@@ -157,7 +173,12 @@ class Schema implements \JsonSerializable
                 $type = $property->getObject();
 
                 $reference = new PropertyReference($property);
-                $this->definitions[$type] = $property;
+                if (!$this->hasDefinition($type)) {
+                    if (null === $property->getSchema()) {
+                        throw new \LogicException(sprintf("Property %s in class %s references and unknown type %s.", $i, $this->title, $type));
+                    }
+                    $this->addDefinition($type, $property->getSchema());
+                }
                 $properties[$i] = $reference;
 
             } else {
@@ -168,8 +189,6 @@ class Schema implements \JsonSerializable
         $serialized = array(
             'title'      => $this->title,
             'type'       => $this->type,
-            '$schema'    => $this->schema,
-            'id'         => $this->id,
             'properties' => $properties,
         );
 

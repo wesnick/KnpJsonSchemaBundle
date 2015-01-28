@@ -56,7 +56,7 @@ class SchemaGenerator
         $schema->setRootSchema($isRootSchema);
 
         if ($isRootSchema) {
-            $this->rootSchema = $schema;
+            $this->rootSchema =& $schema;
         }
 
         foreach ($this->propertyCollector->getPropertiesForClass($className) as $property) {
@@ -67,13 +67,16 @@ class SchemaGenerator
                 if (!in_array($property->getObject(), $this->aliases)) {
 
                     // Generate the schema for the property
-                    $propertySchema = $this->generate($property->getObject(), false);
+                    $subSchema = $this->generate($property->getObject(), false);
                     // Add any definitions for this property to the parent
-                    foreach ($propertySchema->getDefinitions() as $definitionAlias => $definition) {
-                        $this->rootSchema->addDefinitions($definitionAlias, $definition);
+                    foreach ($subSchema->getDefinitions() as $definitionAlias => $definition) {
+                        $this->rootSchema->addDefinition($definitionAlias, $definition);
                     }
 
-                    $property->setSchema($propertySchema);
+                    if (!$isRootSchema && !$this->rootSchema->hasDefinition($property->getObject())) {
+                        $this->rootSchema->addDefinition($property->getObject(), $subSchema);
+                    }
+                    $property->setSchema($subSchema);
                 } else {
                     $property->setIgnored(true);
                 }

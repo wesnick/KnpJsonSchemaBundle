@@ -78,6 +78,25 @@ class JmsSerializerHandler implements PropertyHandlerInterface
             $property->setMultiple(true);
         }
 
+        if ($format = $this->getFormat($dataType, $propertyMeta)) {
+            $property->setFormat($format);
+        }
+
+    }
+
+    private function getFormat($dataType, PropertyMetadata $metadata)
+    {
+        switch ($dataType) {
+            case 'DateTime':
+            case 'DateTimeImmutable':
+                if (isset($metadata->type['params'][0]) && 'Y-m-d' === $metadata->type['params'][0]) {
+                    return 'date';
+                } else {
+                    return 'date-time';
+                }
+            default:
+                return null;
+        }
     }
 
     private function getPropertyType(array $type)
@@ -106,6 +125,7 @@ class JmsSerializerHandler implements PropertyHandlerInterface
             case 'time':
             case 'string':
             case 'DateTimeImmutable':
+            case 'DateTime':
                 return Property::TYPE_STRING;
             default:
                 return Property::TYPE_OBJECT;

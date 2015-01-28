@@ -124,6 +124,14 @@ class Property implements \JsonSerializable
         return (!is_null($type) && in_array($type, $this->type));
     }
 
+    public function removeType($type)
+    {
+        if ($this->hasType($type)) {
+            $key = array_search($type, $this->type);
+            unset($this->type[$key]);
+        }
+    }
+
     public function addType($type)
     {
         if (!in_array($type, $this->type) && !is_null($type)) {
