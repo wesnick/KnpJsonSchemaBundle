@@ -25,7 +25,8 @@ class ExtraValidatorConstraintsHandler implements PropertyHandlerInterface
                 $property->setMaximum($constraint->max);
             }
             if ($constraint instanceof \Symfony\Component\Validator\Constraints\Type) {
-                $property->addType($constraint->type);
+                $dataType = $this->normalizeType($constraint->type);
+                $property->addType($dataType);
             }
             if ($constraint instanceof \Symfony\Component\Validator\Constraints\Date) {
                 $property->setFormat(Property::FORMAT_DATE);
@@ -60,5 +61,19 @@ class ExtraValidatorConstraintsHandler implements PropertyHandlerInterface
         }
 
         return array();
+    }
+
+    private function normalizeType($type)
+    {
+        switch ($type) {
+            case 'int':
+            case 'integer':
+                return 'integer';
+            case 'bool':
+            case 'boolean':
+                return 'boolean';
+            default:
+                return 'string';
+        }
     }
 }

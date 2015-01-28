@@ -43,7 +43,6 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         $this->factory        = $factory;
         $this->namingStrategy = $namingStrategy;
         $this->groups         = $groups;
-
     }
 
     public function handle($className, Property $property)
@@ -56,6 +55,7 @@ class JmsSerializerHandler implements PropertyHandlerInterface
 
         $propertyMeta = $meta->propertyMetadata[$property->getName()];
         $type = $this->getPropertyType($propertyMeta->type);
+        $property->setType($type);
 
         if (!$dataType = $this->getNestedTypeInArray($propertyMeta)) {
             $dataType = $propertyMeta->type['name'];
@@ -64,7 +64,7 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         if (in_array($type, [Property::TYPE_OBJECT, Property::TYPE_ARRAY]) && $this->registry->hasNamespace($dataType)) {
 
             if ($type === Property::TYPE_ARRAY) {
-                $property->addType(Property::TYPE_OBJECT);
+                $property->setType(Property::TYPE_OBJECT);
             }
 
             $alias = $this->registry->getAlias($dataType);
@@ -74,12 +74,9 @@ class JmsSerializerHandler implements PropertyHandlerInterface
             }
         }
 
-
         if (Property::TYPE_ARRAY === $type) {
             $property->setMultiple(true);
         }
-
-        $property->addType($type);
 
     }
 

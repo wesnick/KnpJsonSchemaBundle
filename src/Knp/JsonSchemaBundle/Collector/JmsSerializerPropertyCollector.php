@@ -66,6 +66,10 @@ class JmsSerializerPropertyCollector implements PropertyCollectorInterface
                 }
             }
 
+            if (null === $prop->type) {
+                $property->setIgnored(true);
+            }
+
             $properties[] = $property;
         }
 
