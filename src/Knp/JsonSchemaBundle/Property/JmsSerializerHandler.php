@@ -31,7 +31,12 @@ class JmsSerializerHandler implements PropertyHandlerInterface
      */
     protected $registry;
 
-    protected $groups = array();
+    /**
+     * @var ExclusionStrategyInterface[]
+     */
+    protected $exclusionStrategies = [];
+
+
 
     public function __construct(
         SchemaRegistry $registry,
@@ -42,8 +47,23 @@ class JmsSerializerHandler implements PropertyHandlerInterface
         $this->registry       = $registry;
         $this->factory        = $factory;
         $this->namingStrategy = $namingStrategy;
-        $this->groups         = $groups;
+
+        if ($groups) {
+            $this->setGroups($groups);
+        }
     }
+
+    /**
+     * @param array %groups
+     *
+     * @return JmsSerializerHandler
+     */
+    public function setGroups($groups)
+    {
+        $this->exclusionStrategies = [new GroupsExclusionStrategy($groups)];
+        return $this;
+    }
+
 
     public function handle($className, Property $property)
     {
@@ -80,6 +100,13 @@ class JmsSerializerHandler implements PropertyHandlerInterface
 
         if ($format = $this->getFormat($dataType, $propertyMeta)) {
             $property->setFormat($format);
+        }
+
+        /** @var ExclusionStrategyInterface $strategy */
+        foreach ($this->exclusionStrategies as $strategy) {
+            if (true === $strategy->shouldSkipProperty($propertyMeta, SerializationContext::create())) {
+                $property->setIgnored(true);
+            }
         }
 
     }

@@ -182,7 +182,7 @@ class Schema implements \JsonSerializable
                     }
                     $this->addDefinition($type, $property->getSchema());
                 }
-                $properties[$i] = $reference;
+                $properties[$i] = $reference->jsonSerialize();
 
             } else {
                 $properties[$i] = $property->jsonSerialize();
