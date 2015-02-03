@@ -88,7 +88,7 @@ class SchemaGenerator
         }
 
         if (null === $schema->getProperties()) {
-            throw new \Exception("This resource has no visible properties for this serialization group.");
+            throw new \Exception(sprintf("The resource %s has no visible properties for this serialization group.", $schema->getTitle()));
         }
 
         if (false === $this->validateSchema($schema)) {
