@@ -177,7 +177,8 @@ class Schema implements \JsonSerializable
                 $reference = new PropertyReference($property);
                 if (!$this->hasDefinition($type)) {
                     if (null === $property->getSchema()) {
-                        throw new \LogicException(sprintf("Property %s in class %s references and unknown type %s.", $i, $this->title, $type));
+                        continue;
+                        //throw new \LogicException(sprintf("Property %s in class %s references and unknown type %s.", $i, $this->title, $type));
                     }
                     $this->addDefinition($type, $property->getSchema());
                 }

@@ -116,6 +116,17 @@ class SchemaGenerator
     }
 
     /**
+     * @param PropertyCollectorInterface $propertyCollector
+     *
+     * @return SchemaGenerator
+     */
+    public function setPropertyCollector($propertyCollector)
+    {
+        $this->propertyCollector = $propertyCollector;
+        return $this;
+    }
+
+    /**
      * Validate a schema against the meta-schema provided by http://json-schema.org/schema
      *
      * @param Schema $schema a json schema
@@ -124,8 +135,6 @@ class SchemaGenerator
      */
     private function validateSchema(Schema $schema)
     {
-        // @TODO
-        return true;
         $this->jsonValidator->check(
             json_decode(json_encode($schema->jsonSerialize())),
             json_decode(file_get_contents($schema->getSchema()))
