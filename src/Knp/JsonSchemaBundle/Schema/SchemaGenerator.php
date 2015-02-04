@@ -87,6 +87,9 @@ class SchemaGenerator
             }
         }
 
+        $this->propertyCollector->appendClassProperties($className, $schema);
+
+
         if (null === $schema->getProperties()) {
             throw new \Exception(sprintf("The resource %s has no visible properties for this serialization group.", $schema->getTitle()));
         }

@@ -4,6 +4,7 @@
  */
 namespace Knp\JsonSchemaBundle\Collector;
 use Knp\JsonSchemaBundle\Model\Property;
+use Knp\JsonSchemaBundle\Model\Schema;
 
 
 /**
@@ -18,4 +19,11 @@ interface PropertyCollectorInterface
      * @return Property[]
      */
     public function getPropertiesForClass($className);
+
+
+    /**
+     * @param string $className
+     * @param Schema $schema
+     */
+    public function appendClassProperties($className, Schema $schema);
 }

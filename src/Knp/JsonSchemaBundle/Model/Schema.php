@@ -48,6 +48,27 @@ class Schema implements \JsonSerializable
     private $properties;
 
     /**
+     * To validate against allOf, the given data must be valid against all of the given subschemas.
+     *
+     * @var PropertyReference[]
+     */
+    private $allOf;
+
+    /**
+     * To validate against anyOf, the given data must be valid against any (one or more) of the given subschemas.
+     *
+     * @var PropertyReference[]
+     */
+    private $anyOf;
+
+    /**
+     * To validate against oneOf, the given data must be valid against exactly one of the given subschemas.
+     *
+     * @var PropertyReference[]
+     */
+    private $oneOf;
+
+    /**
      * @var bool
      */
     private $rootSchema = false;
@@ -156,6 +177,63 @@ class Schema implements \JsonSerializable
         $this->schema = $schema;
     }
 
+    /**
+     * @return PropertyReference[]
+     */
+    public function getAllOf()
+    {
+        return $this->allOf;
+    }
+
+    /**
+     * @param PropertyReference $allOf
+     *
+     * @return Schema
+     */
+    public function addAllOf($allOf)
+    {
+        $this->allOf[$allOf->getName()] = $allOf;
+        return $this;
+    }
+
+    /**
+     * @return PropertyReference[]
+     */
+    public function getAnyOf()
+    {
+        return $this->anyOf;
+    }
+
+    /**
+     * @param PropertyReference $anyOf
+     *
+     * @return Schema
+     */
+    public function addAnyOf(PropertyReference $anyOf)
+    {
+        $this->anyOf[$anyOf->getName()] = $anyOf;
+        return $this;
+    }
+
+    /**
+     * @return PropertyReference[]
+     */
+    public function getOneOf()
+    {
+        return $this->oneOf;
+    }
+
+    /**
+     * @param PropertyReference $oneOf
+     *
+     * @return Schema
+     */
+    public function addOneOf(PropertyReference $oneOf)
+    {
+        $this->oneOf[$oneOf->getName()] = $oneOf;
+        return $this;
+    }
+
     public function jsonSerialize()
     {
 
@@ -198,6 +276,15 @@ class Schema implements \JsonSerializable
         // Add definitions to root schema only
         if ($this->rootSchema && !empty($this->definitions)) {
             $serialized['definitions'] = $this->definitions;
+        }
+
+        // Add schema keywords
+        foreach (array('anyOf', 'allOf', 'oneOf') as $membership) {
+            if (null !== $this->{$membership}) {
+                foreach ($this->{$membership} as $member) {
+                    $serialized[$membership][] = $member->jsonSerialize();
+                }
+            }
         }
 
         $requiredProperties = array_keys(array_filter($this->properties, function ($property) {

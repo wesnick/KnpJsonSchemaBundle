@@ -31,6 +31,40 @@ class PropertyReference implements \JsonSerializable
         $this->type = $property->hasType(Property::TYPE_ARRAY) ? Property::TYPE_ARRAY : Property::TYPE_OBJECT;
     }
 
+    public static function create($name, $type, $object)
+    {
+
+        $property = new Property();
+        $property->setName($name);
+        $property->addType($type);
+        $property->setObject($object);
+
+        return new static($property);
+    }
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getObject()
+    {
+        return $this->object;
+    }
+
 
     function jsonSerialize()
     {
