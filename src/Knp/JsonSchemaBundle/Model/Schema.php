@@ -252,6 +252,10 @@ class Schema implements \JsonSerializable
 
                 $type = $property->getObject();
 
+                if (!$type) {
+                    continue;
+                }
+
                 $reference = new PropertyReference($property);
                 if (!$this->hasDefinition($type)) {
                     if (null === $property->getSchema()) {
