@@ -80,26 +80,20 @@ class JmsSerializerPropertyCollector implements PropertyCollectorInterface
             $discriminator = $this->propertyFactory->createProperty($metadata->discriminatorFieldName);
             $discriminator->setType(Property::TYPE_STRING);
             $discriminator->setRequired(true);
-            $discriminator->setDescription(
-                sprintf("A discriminator property.  One of: '%s'", implode("', '", array_keys($metadata->discriminatorMap)))
-            );
 
             if (null === $metadata->discriminatorValue) {
-                // This is the base class, add any of
-                foreach ($metadata->discriminatorMap as $alias => $map) {
-                    $anyOf = $this->propertyFactory->createProperty($alias);
-                    $anyOf->setType(Property::TYPE_OBJECT);
-                    $anyOf->setObject($alias);
-                    $properties[] = $anyOf;
 
-                }
+                $discriminator->setDescription(
+                    sprintf("A discriminator property.  One of: '%s'", implode("', '", array_keys($metadata->discriminatorMap)))
+                );
+
             } else {
-                // Sub Class Show one of
-                $oneOf = $this->propertyFactory->createProperty(array_search($metadata->discriminatorBaseClass, $metadata->discriminatorMap));
-                $oneOf->setType(Property::TYPE_OBJECT);
-                $oneOf->setObject(array_search($metadata->discriminatorBaseClass, $metadata->discriminatorMap));
-                $properties[] = $oneOf;
+                $discriminator->setDescription(
+                    sprintf('Discriminated instance.  Set type as "%s"', $metadata->discriminatorValue)
+                );
             }
+
+            $properties[] = $discriminator;
 
         }
 
@@ -123,12 +117,31 @@ class JmsSerializerPropertyCollector implements PropertyCollectorInterface
                 }
             } else {
                 // Sub Class Show one of
-                $schema->addOneOf(PropertyReference::create($metadata->discriminatorBaseClass, Property::TYPE_OBJECT, array_search($metadata->discriminatorBaseClass, $metadata->discriminatorMap)));
+                $baseSchema = $this->extractDiscriminatorBaseClass($metadata->discriminatorBaseClass);
+
+                $schema->addOneOf(
+                    PropertyReference::create(
+                        $baseSchema, Property::TYPE_OBJECT, $baseSchema
+                    )
+                );
             }
 
 
         }
     }
 
+
+    /**
+     * @TODO: need a strategy for handling this
+     *
+     * @param $class
+     * @return string
+     */
+    private function extractDiscriminatorBaseClass($class)
+    {
+        $name = substr($class, strrpos($class, "\\") + 1);
+
+        return lcfirst($name);
+    }
 
 }

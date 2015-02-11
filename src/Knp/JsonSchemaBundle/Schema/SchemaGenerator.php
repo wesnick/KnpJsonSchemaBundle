@@ -25,6 +25,7 @@ class SchemaGenerator
      * @var Schema
      */
     protected $rootSchema;
+    protected $schemaReferences = [];
 
     public function __construct(
         \JsonSchema\Validator $jsonValidator,
@@ -77,8 +78,14 @@ class SchemaGenerator
                         $this->rootSchema->addDefinition($property->getObject(), $subSchema);
                     }
                     $property->setSchema($subSchema);
+
+                    $this->schemaReferences[$alias] = $property;
                 } else {
                     $property->setIgnored(true);
+
+                    if (array_key_exists($property->getObject(), $this->schemaReferences)) {
+                        $schema->addProperty($this->schemaReferences[$property->getObject()]);
+                    }
                 }
             }
 
