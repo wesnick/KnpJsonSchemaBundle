@@ -103,9 +103,6 @@ class Schema implements \JsonSerializable
      */
     public function addDefinition($alias, Schema $definition)
     {
-        // When adding a definition, we should replace the property with a reference
-        unset($this->properties[$alias]);
-
         $this->definitions[$alias] = $definition;
     }
 
