@@ -63,6 +63,9 @@ class JsonSchemaAnnotationHandler implements PropertyHandlerInterface
                     $property->setObject($constraint->alias);
                     $property->setMultiple($constraint->multiple);
                 }
+                if ($constraint instanceof \Knp\JsonSchemaBundle\Annotations\Required) {
+                    $property->setRequired(true);
+                }
             }
         }
     }
