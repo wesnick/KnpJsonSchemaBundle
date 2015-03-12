@@ -79,12 +79,10 @@ class SchemaGenerator
                     }
                     $property->setSchema($subSchema);
 
-                    $this->schemaReferences[$alias] = $property;
+                    $this->schemaReferences[$property->getObject()] = $subSchema;
                 } else {
-                    $property->setIgnored(true);
-
                     if (array_key_exists($property->getObject(), $this->schemaReferences)) {
-                        $schema->addProperty($this->schemaReferences[$property->getObject()]);
+                        $property->setSchema($this->schemaReferences[$property->getObject()]);
                     }
                 }
             }
