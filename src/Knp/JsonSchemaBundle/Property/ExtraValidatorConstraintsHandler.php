@@ -16,6 +16,7 @@ class ExtraValidatorConstraintsHandler implements PropertyHandlerInterface
 
     public function handle($className, Property $property)
     {
+        $property->setRequired(false);
         foreach ($this->getConstraintsForProperty($className, $property) as $constraint) {
             if ($constraint instanceof \Symfony\Component\Validator\Constraints\Choice) {
                 $property->setEnumeration($constraint->choices);
@@ -46,6 +47,13 @@ class ExtraValidatorConstraintsHandler implements PropertyHandlerInterface
                     $property->setFormat(Property::FORMAT_IPV6);
                 }
             }
+
+            // Required
+            if ($constraint instanceof \Symfony\Component\Validator\Constraints\NotBlank) {
+                $property->setRequired(true);
+            }
+
+
         }
     }
 
